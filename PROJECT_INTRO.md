@@ -287,4 +287,4 @@ make html       # 构建原版博客网页 docs/index.html
 ## License
 
 原版代码基于 [MIT License](LICENSE)（Copyright © 2018 Alexander Rush）。
-中文注释、句子补全任务改造与训练/推理工具箱部分，欢迎按同一协议自由使用与修改。
+中文注释、句子补全任务改造与训练/推理工具箱部分 © 2026 jebert639jebert，按同一 MIT 协议开放，欢迎自由使用与修改。
