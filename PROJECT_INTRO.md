@@ -10,8 +10,45 @@
 
 ---
 
+## 运行效果预览
+
+**推理界面**（Tkinter，零额外依赖）：自动扫描所有训练产出的模型 → 双击加载（显示参数量 / 训练进度 / 验证 loss / GPU 或 CPU）→ 输入前缀一键续写，保留生成历史：
+
+![推理界面](screenshots/gui_inference.png)
+
+**训练可视化**：每次训练自动保存 loss 曲线、学习率曲线和双轴合并图到输出目录：
+
+| 训练 / 验证损失曲线 | Loss + 学习率合并视图 |
+|---|---|
+| ![训练损失曲线](screenshots/train_loss_curve.png) | ![Loss+LR 合并图](screenshots/train_loss_lr_combined.png) |
+
+**模型管理**（`python transformer_api.py list`，扫描全部 `output*/` 并读取 checkpoint 元信息）：
+
+```text
+模型文件                     类型   Epoch  ValLoss 配置                                 大小    修改时间
+------------------------------------------------------------------------------------------------
+output\best_model.pt       best     25    5.876 d_model=512 N=6 h=8 d_ff=2048    820.0M  2026-08-28 14:00
+output\final_model.pt      final   100    8.642 d_model=512 N=6 h=8 d_ff=2048    286.4M  2026-08-28 14:00
+output_3\best_model.pt     best     97    6.170 d_model=128 N=2 h=4 d_ff=512      89.8M  2026-08-28 14:00
+output_5\best_model.pt     best      1    6.737 d_model=64  N=2 h=2 d_ff=128      42.0M  2026-08-30 18:51
+...
+```
+
+**一行推理**（`python transformer_api.py infer "I had always thought"`，不指定 `--model` 时自动选 val_loss 最低的 best 模型）：
+
+```text
+[transformer_api] 已加载 output\best_model.pt (epoch=25, 参数量=69,923,924, device=cuda)
+输入: The judge
+补全: The judge a the arms, I looking: house me, I manage v himself called with.
+```
+
+> 以上均为真实运行记录。示例模型仅在约 2 万字符的小语料上训练了少量轮次，补全质量尚在「能看出学习趋势」的阶段——这正是本项目适合练手的地方：换 `combined.txt`、调大 `num_epochs`，看着曲线一点点变好。
+
+---
+
 ## 目录
 
+- [运行效果预览](#运行效果预览)
 - [实验环境](#实验环境)
 - [快速开始](#快速开始)
 - [文件结构总览](#文件结构总览)
@@ -104,6 +141,7 @@ annotated-transformer/
 ├── transformer_dataflow.md       # 张量形状数据流图文说明（含易错点提醒）
 ├── transformer_dataflow.png      # 数据流图（由 draw_dataflow.py 生成）
 ├── tansformer.png                # 模型架构图截图
+├── screenshots/                  # 本 README 使用的运行效果截图
 ├── docs/                         # 原版博客网页（index.html + css）
 ├── images/                       # 论文插图（aiayn.png、ModalNet-*.png）
 └── output*/                      # 训练输出目录（自动递增：output、output_2、…）
@@ -229,6 +267,10 @@ make html       # 构建原版博客网页 docs/index.html
 | `the_annotated_transformer.py` | 原版 The Annotated Transformer 论文源码（jupytext percent 格式，中英对照可对照阅读） |
 | `AnnotatedTransformer.ipynb` | 由上面源码构建的原版 notebook |
 | `docs/index.html` | 原版博客网页 |
+
+张量形状数据流一览（`draw_dataflow.py` 可重新生成）：
+
+![张量形状数据流图](transformer_dataflow.png)
 
 ## 任务与数据流
 

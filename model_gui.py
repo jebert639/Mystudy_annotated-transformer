@@ -260,6 +260,9 @@ class InferenceGUI:
     # ------------------------------------------------------------
 
     def _show_info(self, m, loaded=False):
+        def _fmt(x):
+            return f"{x:.3f}" if isinstance(x, float) else str(x)
+
         lines = []
         if loaded:
             c = m["config"]
@@ -269,14 +272,14 @@ class InferenceGUI:
             lines.append(f"参数量: {m['total_params']:,}")
             ep = m["epoch"]
             ep_txt = f"第 {ep} epoch" if isinstance(ep, int) else str(ep)
-            lines.append(f"训练信息: {ep_txt}  |  val_loss={m['val_loss'] if m['val_loss'] is not None else '-'}"
-                         f"  train_loss={m['train_loss'] if m['train_loss'] is not None else '-'}")
+            lines.append(f"训练信息: {ep_txt}  |  val_loss={_fmt(m['val_loss'])}"
+                         f"  train_loss={_fmt(m['train_loss'])}")
         else:
             c = m["config"]
             lines.append(f"选中: {m['path']}   [{m['kind']}]   epoch={m['epoch']}")
             lines.append(f"结构: d_model={c.get('d_model', '?')}  N={c.get('N', '?')}  h={c.get('h', '?')}  "
                          f"d_ff={c.get('d_ff', '?')}  vocab={c.get('vocab_size', '?')}")
-            lines.append(f"val_loss={m['val_loss'] if m['val_loss'] is not None else '-'}   "
+            lines.append(f"val_loss={_fmt(m['val_loss'])}   "
                          f"大小={m['size_mb']:.1f}M   修改时间={m['mtime']}")
             lines.append("双击该行或点「加载选中模型」开始加载。")
         self.info_text.config(state="normal")
