@@ -1,0 +1,50 @@
+# ============================================================
+# Annotated Transformer - .gitignore
+# ============================================================
+
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# ---------- Jupyter ----------
+*.ipynb
+.ipynb_checkpoints/
+
+# ---------- Training outputs (model checkpoints, logs, plots) ----------
+output/
+output_*/
+*.pt
+*.log
+
+# ---------- Data files ----------
+.data
+combined.txt
+
+# ---------- IDE / Editor ----------
+.idea/
+.vscode/
+.zcode/
+*.swp
+*.swo
+*~
+
+# ---------- OS files ----------
+.DS_Store
+Thumbs.db
+
+# ---------- ML experiment tracking ----------
+wandb/
+
+# ---------- Environment ----------
+.env
+venv/
+.venv/
+conda-env/
+
+# ---------- Distribution / build ----------
+*.egg-info/
+dist/
+build/
