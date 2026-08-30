@@ -92,9 +92,9 @@ class InferenceGUI:
         columns = ("path", "kind", "epoch", "val", "cfg", "size", "mtime")
         self.tree = ttk.Treeview(left, columns=columns, show="headings", height=14)
         headings = {
-            "path": ("模型文件", 170), "kind": ("类型", 44), "epoch": ("Epoch", 46),
-            "val": ("Val Loss", 58), "cfg": ("配置 (d_model/N/h/d_ff)", 190),
-            "size": ("大小", 52), "mtime": ("修改时间", 92),
+            "path": ("模型文件", 215), "kind": ("类型", 44), "epoch": ("Epoch", 44),
+            "val": ("Val Loss", 58), "cfg": ("配置 (d_model/N/h/d_ff)", 160),
+            "size": ("大小", 48), "mtime": ("修改时间", 92),
         }
         for col, (text, width) in headings.items():
             anchor = "e" if col in ("epoch", "val", "size") else "w"

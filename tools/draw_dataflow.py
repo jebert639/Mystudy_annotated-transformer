@@ -196,6 +196,10 @@ ax.text(65, 0.2,
         "注2：mask 在注意力内部 unsqueeze(1) 后广播到 h 个头；除嵌入、FFN 中间层(d_ff)和 Generator(vocab_size) 外，其余层形状不变。",
         ha="center", va="center", fontsize=8, color="#475569")
 
-fig.savefig("transformer_dataflow.png", dpi=170, bbox_inches="tight",
+# 保存到项目根的 docs/ 目录 (tools/ 的上一级)
+import os
+_out_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                         "docs", "transformer_dataflow.png")
+fig.savefig(_out_path, dpi=170, bbox_inches="tight",
             facecolor="white")
-print("已生成 transformer_dataflow.png")
+print(f"已生成 {_out_path}")

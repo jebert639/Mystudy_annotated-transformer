@@ -4,9 +4,9 @@
 超参数默认值遵循 Transformer 原论文 (Attention Is All You Need):
   d_model=512, N=6, h=8, d_ff=2048, warmup=4000, label_smooth=0.1
 
-用法:
-  训练:   python train_sentence_completion.py
-  推理:   python train_sentence_completion.py --infer "I had always thought"
+用法 (在项目根目录执行):
+  训练:   python src/train_sentence_completion.py
+  推理:   python src/train_sentence_completion.py --infer "I had always thought"
 """
 
 import os
@@ -14,13 +14,20 @@ import sys
 import argparse
 from train_runner import train, infer
 
+# 项目根目录 (src/ 的上一级)
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 
 def main():
     parser = argparse.ArgumentParser(description="Transformer 句子补全训练")
 
     parser.add_argument("--infer", type=str, default=None, help="推理模式: 输入前缀文本进行补全")
-    parser.add_argument("--model_path", type=str, default="output/best_model.pt", help="推理时加载的模型路径")
-    parser.add_argument("--output_dir", type=str, default="output", help="输出文件夹路径")
+    parser.add_argument("--model_path", type=str,
+                        default=os.path.join("outputs", "big512_nowd", "best_model.pt"),
+                        help="推理时加载的模型路径 (默认: 当前 val_loss 最低的 best 模型所在目录)")
+    parser.add_argument("--output_dir", type=str,
+                        default=os.path.join("outputs", "output"),
+                        help="输出文件夹路径")
     parser.add_argument("--data_path", type=str, default=None, help="训练数据路径 (默认: the-verdict.txt)")
     parser.add_argument("--overwrite", action="store_true", help="覆盖已有输出文件夹")
     parser.add_argument("--num_epochs", type=int, default=50, help="训练轮数")
@@ -36,7 +43,7 @@ def main():
     args = parser.parse_args()
 
     if args.data_path is None:
-        data_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "the-verdict.txt")
+        data_path = os.path.join(_PROJECT_ROOT, "data", "the-verdict.txt")
     else:
         data_path = args.data_path
 

@@ -15,5 +15,5 @@ rem otherwise DLL lookups can hit incompatible copies from H:\msys2\mingw64\bin.
 set PATH=%ENV%;%ENV%\Library\mingw-w64\bin;%ENV%\Library\usr\bin;%ENV%\Library\bin;%ENV%\Scripts;%PATH%
 
 echo Starting GUI with: %PY%
-"%PY%" model_gui.py
+"%PY%" src\model_gui.py
 if errorlevel 1 pause

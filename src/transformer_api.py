@@ -6,7 +6,7 @@ transformer_api.py - Transformer 训练/推理一站式封装 (高层 API)
 前提下, 提供更好用的一站式接口:
 
     1. train(...)      一行启动训练: train(参数名=值, ...)
-    2. list_models()   自动扫描项目里的 output*/ 目录, 列出所有可用模型
+    2. list_models()   自动扫描项目里的 outputs/ 目录, 列出所有可用模型
     3. infer(...)      一行推理, model 可以是 路径 / 序号 / None(自动选最优)
     4. load_model()    加载模型供反复使用 (GUI 用的底层接口)
 
@@ -14,22 +14,23 @@ transformer_api.py - Transformer 训练/推理一站式封装 (高层 API)
 
     from transformer_api import train, infer, list_models
 
-    train()                                            # 全部默认, 训练 the-verdict.txt
+    train()                                            # 全部默认, 训练 data/the-verdict.txt
     train(preset="tiny")                               # 冒烟测试: 最小模型 2 个 epoch
+    train(name="big512_v2", preset="fast")             # 给模型起名 -> outputs/big512_v2
     train(preset="fast")                               # 快速实验配置
     train(preset="fast", d_model=384, num_epochs=50)   # 预设基础上覆盖若干参数
     train(d_model=512, n=6, h=8, d_ff=2048, warmup_steps=4000, num_epochs=200)  # 论文配置
 
     list_models()                                      # 打印模型列表
     infer("I had always thought")                      # 自动加载 val_loss 最低的 best 模型
-    infer("I had always thought", model="output_2/best_model.pt")
+    infer("I had always thought", model="outputs/output_2/best_model.pt")
 
-命令行:
+命令行 (在项目根目录执行):
 
-    python transformer_api.py list
-    python transformer_api.py train preset=fast num_epochs=30
-    python transformer_api.py infer "I had always thought" --model output/best_model.pt
-    python transformer_api.py gui          # 启动推理界面
+    python src/transformer_api.py list
+    python src/transformer_api.py train preset=fast num_epochs=30
+    python src/transformer_api.py infer "I had always thought" --model outputs/output/best_model.pt
+    python src/transformer_api.py gui      # 启动推理界面
 
 注意: 数据集段落划分沿用 train_runner 内部固定的 random.seed(42),
      这里的 seed 只控制模型初始化/采样等 torch 侧随机性。
@@ -52,7 +53,9 @@ from train_utils import BPETokenizer, complete_sentence
 # H:\msys2\mingw64\bin\libharfbuzz-0.dll 并因版本不匹配弹窗崩溃。
 # 惰性导入后, list/infer/GUI 完全不碰 matplotlib, 只有 train() 才加载。
 
-PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # src/ 的上一级 = 项目根
+DATA_DIR = os.path.join(PROJECT_ROOT, "data")
+OUTPUTS_DIR = os.path.join(PROJECT_ROOT, "outputs")
 
 
 # ============================================================
@@ -91,31 +94,38 @@ def set_seed(seed=42):
 
 
 def _resolve_data_path(path):
-    "定位训练数据文件: 绝对路径直接用; 相对路径先按当前工作目录找, 再按项目根找"
+    "定位训练数据文件: 绝对路径直接用; 相对路径先按当前目录找, 再按 data/ 和项目根找"
     if os.path.isabs(path):
         if not os.path.exists(path):
             raise FileNotFoundError(f"训练数据不存在: {path}")
         return path
     if os.path.exists(path):
         return os.path.abspath(path)
-    alt = os.path.join(PROJECT_ROOT, path)
-    if os.path.exists(alt):
-        return alt
-    raise FileNotFoundError(f"训练数据不存在: {path} (也尝试了 {alt})")
+    for alt in (os.path.join(DATA_DIR, path), os.path.join(PROJECT_ROOT, path)):
+        if os.path.exists(alt):
+            return alt
+    raise FileNotFoundError(
+        f"训练数据不存在: {path} (也尝试了 {os.path.join(DATA_DIR, path)})"
+    )
 
 
 # ============================================================
 # 训练
 # ============================================================
 
-def train(preset=None, data_path=None, output_dir=None, seed=42, device=None, **hyper):
+def train(preset=None, name=None, data_path=None, output_dir=None, seed=42, device=None, **hyper):
     """
     一行启动训练, 写脚本时直接: train(参数名=值, 参数名=值, ...)
 
     参数:
         preset      预设名: "tiny" / "fast" / "paper", 可省略
-        data_path   训练文本路径, 默认自动找项目根的 the-verdict.txt
-        output_dir  输出目录名, 默认 "output" (已存在则自动变成 output_2, output_3 ...)
+        name        模型名: 作为 outputs/ 下的子目录名 (如 name="big512_v2"
+                    -> outputs/big512_v2)。不指定则默认 outputs/output 并
+                    自动递增 output_2、output_3...; 已存在同名目录会自动加
+                    _2 后缀, 想覆盖请传 overwrite=True
+        data_path   训练文本路径, 默认自动找 data/the-verdict.txt
+        output_dir  输出目录 (与 name 二选一, 同时给出时 output_dir 优先);
+                    相对名自动落到 outputs/ 下, 绝对路径按原样使用
         seed        随机种子 (默认 42)
         device      None=自动 (有CUDA用CUDA); 传 "cpu" 可强制用CPU
         **hyper     其余全部直接透传给 train_runner.train, 例如:
@@ -143,12 +153,17 @@ def train(preset=None, data_path=None, output_dir=None, seed=42, device=None, **
     # 显式传入的参数覆盖预设
     cfg.update(hyper)
 
-    if data_path is None:
-        data_path = os.path.join(PROJECT_ROOT, "the-verdict.txt")
-    data_path = _resolve_data_path(data_path)
-
+    # 模型命名: name 指定 outputs/ 下的子目录名; 未指定则默认 output (自动递增)
     if output_dir is None:
-        output_dir = "output"
+        output_dir = name if name is not None else "output"
+
+    # 所有训练产物统一放到项目根的 outputs/ 目录下
+    if not os.path.isabs(output_dir):
+        output_dir = os.path.join(OUTPUTS_DIR, output_dir)
+
+    if data_path is None:
+        data_path = os.path.join(DATA_DIR, "the-verdict.txt")
+    data_path = _resolve_data_path(data_path)
 
     if device == "cpu":
         # 让 train_runner 里 "cuda if available" 的判断失效, 强制走 CPU
@@ -207,7 +222,7 @@ def list_models(root=PROJECT_ROOT, verbose=True):
     import glob
 
     models = []
-    pt_files = glob.glob(os.path.join(root, "output*", "*.pt"))
+    pt_files = glob.glob(os.path.join(root, "outputs", "*", "*.pt"))
     for pt in sorted(pt_files, key=lambda p: (_natural_key(os.path.basename(os.path.dirname(p))), os.path.basename(p))):
         try:
             ck = _torch_load(pt)

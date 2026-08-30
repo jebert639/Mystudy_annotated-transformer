@@ -24,13 +24,14 @@ if __name__ == "__main__":
     print(f"  最佳验证 loss: {result['best_val_loss']:.4f}")
     print(f"  模型参数量: {result['total_params']:,}")
     print("\n接下来可以推理:")
-    print(f'  python transformer_api.py infer "I had always thought" --model {result["output_dir"]}/best_model.pt')
+    print(f'  python src/transformer_api.py infer "I had always thought" --model {result["output_dir"]}/best_model.pt')
 
     # ---------- 其他常见写法 (取消注释即用) ----------
     #
+    # train(name="big512_v2", preset="fast")              # ★给模型起名 -> outputs/big512_v2
     # train(preset="fast")                                # 快速实验配置 (256维/4层/30epoch)
     # train(preset="fast", d_model=384, num_epochs=50)    # 预设基础上覆盖若干参数
     # train(d_model=512, n=6, h=8, d_ff=2048,
     #       warmup_steps=4000, num_epochs=200)            # 论文标准配置
-    # train(output_dir="experiment_A", seed=0)            # 指定输出目录和种子
+    # train(name="exp_A", data_path="data/combined.txt", seed=0)  # 换语料/名字/种子
     # train(preset="tiny", overwrite=True)                # 覆盖已有输出目录
