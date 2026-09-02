@@ -53,19 +53,7 @@ def subsequent_mask(size):
 # ============================================================
 # 总模型架构
 # ============================================================
-# Most competitive neural sequence transduction models have an
-# encoder-decoder structure. Here, the encoder maps an input sequence
-# of symbol representations (x_1, ..., x_n) to a sequence of
-# continuous representations z = (z_1, ..., z_n). Given z, the decoder
-# then generates an output sequence (y_1,..., y_m) of symbols one
-# element at a time. At each step the model is auto-regressive,
-# consuming the previously generated symbols as additional input
-# when generating the next.
-#
-# The Transformer follows this overall architecture using stacked
-# self-attention and point-wise, fully connected layers for both the
-# encoder and decoder, shown in the left and right halves of Figure 1,
-# respectively.
+
 
 class EncoderDecoder(nn.Module):
     """
@@ -104,15 +92,6 @@ class EncoderDecoder(nn.Module):
 # ============================================================
 # 嵌入层
 # ============================================================
-# Similarly to other sequence transduction models, we use learned
-# embeddings to convert the input tokens and output tokens to vectors
-# of dimension d_model. We also use the usual learned linear
-# transformation and softmax function to convert the decoder output to
-# predicted next-token probabilities. In our model, we share the same
-# weight matrix between the two embedding layers and the pre-softmax
-# linear transformation. In the embedding layers, we multiply those
-# weights by sqrt(d_model).
-
 # id->vector
 # 输入：(batch_size, seq_len)
 # 输出：(batch, seq_len, d_model)
@@ -131,37 +110,6 @@ class Embeddings(nn.Module):
 # ============================================================
 # 位置编码
 # ============================================================
-# Since our model contains no recurrence and no convolution, in order
-# for the model to make use of the order of the sequence, we must
-# inject some information about the relative or absolute position of
-# the tokens in the sequence. To this end, we add "positional
-# encodings" to the input embeddings at the bottoms of the encoder
-# and decoder stacks. The positional encodings have the same dimension
-# d_model as the embeddings, so that the two can be summed.
-#
-# In this work, we use sine and cosine functions of different frequencies:
-#
-#   PE_(pos,2i)   = sin(pos / 10000^(2i/d_model))
-#   PE_(pos,2i+1) = cos(pos / 10000^(2i/d_model))
-#
-# where pos is the position and i is the dimension. That is, each
-# dimension of the positional encoding corresponds to a sinusoid. The
-# wavelengths form a geometric progression from 2*pi to 10000 * 2*pi.
-# We chose this function because we hypothesized it would allow the
-# model to easily learn to attend by relative positions, since for any
-# fixed offset k, PE_(pos+k) can be represented as a linear function
-# of PE_pos.
-#
-# In addition, we apply dropout to the sums of the embeddings and the
-# positional encodings in both the encoder and decoder stacks. For the
-# base model, we use a rate of P_drop=0.1.
-#
-# We also experimented with using learned positional embeddings instead,
-# and found that the two versions produced nearly identical results.
-# We chose the sinusoidal version because it may allow the model to
-# extrapolate to sequence lengths longer than the ones encountered
-# during training.
-
 class PositionalEncoding(nn.Module):
     "Implement the PE function."
     '''
@@ -328,17 +276,6 @@ class MultiHeadedAttention(nn.Module):
 # ============================================================
 # 标准化 (LayerNorm) 与 残差连接 (SublayerConnection)
 # ============================================================
-# We employ a residual connection around each of the two sub-layers,
-# followed by layer normalization.
-#
-# That is, the output of each sub-layer is LayerNorm(x + Sublayer(x)),
-# where Sublayer(x) is the function implemented by the sub-layer
-# itself. We apply dropout to the output of each sub-layer, before it
-# is added to the sub-layer input and normalized.
-#
-# To facilitate these residual connections, all sub-layers in the
-# model, as well as the embedding layers, produce outputs of dimension
-# d_model=512.
 
 class LayerNorm(nn.Module):
     "Construct a layernorm module (See citation for details)."

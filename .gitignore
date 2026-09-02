@@ -14,9 +14,11 @@ __pycache__/
 .ipynb_checkpoints/
 
 # ---------- Training outputs (model checkpoints, logs, plots) ----------
-outputs/
-*.pt
-*.log
+# 仅同步 small128_nowd 供他人调试，其余忽略
+outputs/big512_nowd/
+outputs/big512_wd01/
+outputs/small128_wd01/
+outputs/**/.ipynb_checkpoints/
 
 # ---------- Data files ----------
 .data
